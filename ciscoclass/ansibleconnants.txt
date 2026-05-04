@@ -1,0 +1,5 @@
+ansible-galaxy collection install cisco.iosxr
+
+
+
+ansible-playbook -i inventory.yml deploy_initial_config.yml

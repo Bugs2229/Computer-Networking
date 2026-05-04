@@ -1,0 +1,31 @@
+cool.  I would like the basic configuration for Cisco 8201-24H8FH router. Please omit all Fiber interfaces at this point, I only want to focus on RJ-45 connections and ports 
+
+
+That was good.  Let's implement a few values.
+Router BGP with ASN 65501 network 169.254.90.12/30  This needs network interface IP 169.254.90.13/32
+
+Router OSPF Area 1 Network 10.30.0.0/16 this needs network interface IP10.30.0.1/16
+
+Router EIGRP AS 20 network 192.168.20.0/24 this needs network interface IP 192.168.20.1/24
+
+BGP routes need to be redistributed into OSPF Area 1.  OSPF does not advertise routes to BGP.  
+
+EIGRP routes need to be redistributed into OSPF Area 1. EIGRP does not advertise routes into EIGRP
+
+
+
+
+ okay so the BGP interface is running IPSec and it's neighbor is 169.254.90.14/32. Can you please provide a configuration for this and include/generate:
+
+Pre-shared keys.
+IKE v2 
+timeout: Default
+AH 14
+Sha-256
+Use normal default values for the rest. 
+
+
+
+Okay so I would to deploy this initial config to the Cisco router using Ansible. Can you generate a generic playbook for this purpose? 
+
+

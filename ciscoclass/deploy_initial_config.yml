@@ -1,0 +1,117 @@
+---
+- name: Deploy initial configuration to Cisco 8201 (IOS XR)
+  hosts: all
+  gather_facts: no
+
+  tasks:
+
+    - name: Configure system basics
+      cisco.iosxr.iosxr_config:
+        lines:
+          - hostname C8201-24H8FH
+          - domain-name example.local
+
+    - name: Configure management interface
+      cisco.iosxr.iosxr_config:
+        lines:
+          - interface MgmtEth0/RP0/CPU0/0
+          - description Management Interface
+          - ipv4 address 192.168.1.10 255.255.255.0
+          - no shutdown
+
+    - name: Configure BGP interface (RJ-45)
+      cisco.iosxr.iosxr_config:
+        lines:
+          - interface GigabitEthernet0/0/0/0
+          - description BGP-Link-IPSEC
+          - ipv4 address 169.254.90.13 255.255.255.255
+          - tunnel protection ipsec profile IPSEC-PROFILE
+          - no shutdown
+
+    - name: Configure OSPF interface
+      cisco.iosxr.iosxr_config:
+        lines:
+          - interface GigabitEthernet0/0/0/1
+          - description OSPF-Area-1
+          - ipv4 address 10.30.0.1 255.255.0.0
+          - no shutdown
+
+    - name: Configure EIGRP interface
+      cisco.iosxr.iosxr_config:
+        lines:
+          - interface GigabitEthernet0/0/0/2
+          - description EIGRP-AS-20
+          - ipv4 address 192.168.20.1 255.255.255.0
+          - no shutdown
+
+    - name: Configure IKEv2 proposal and policy
+      cisco.iosxr.iosxr_config:
+        lines:
+          - crypto ikev2 proposal IKEV2-PROP
+          - encryption aes-cbc-256
+          - integrity sha256
+          - group 14
+          - crypto ikev2 policy IKEV2-POLICY
+          - proposal IKEV2-PROP
+
+    - name: Configure IKEv2 keyring
+      cisco.iosxr.iosxr_config:
+        lines:
+          - crypto ikev2 keyring IKEV2-KEYRING
+          - peer BGP-PEER
+          - address 169.254.90.14
+          - pre-shared-key local MyStrongPSK123
+          - pre-shared-key remote MyStrongPSK123
+
+    - name: Configure IKEv2 profile
+      cisco.iosxr.iosxr_config:
+        lines:
+          - crypto ikev2 profile IKEV2-PROFILE
+          - match identity remote address 169.254.90.14 255.255.255.255
+          - authentication local pre-share
+          - authentication remote pre-share
+          - keyring local IKEV2-KEYRING
+
+    - name: Configure IPsec proposal and profile
+      cisco.iosxr.iosxr_config:
+        lines:
+          - crypto ipsec proposal IPSEC-PROP
+          - protocol esp encryption aes-cbc-256
+          - protocol esp integrity sha256
+          - crypto ipsec profile IPSEC-PROFILE
+          - set ikev2-profile IKEV2-PROFILE
+          - set pfs group14
+
+    - name: Configure BGP
+      cisco.iosxr.iosxr_config:
+        lines:
+          - router bgp 65501
+          - bgp router-id 169.254.90.13
+          - neighbor 169.254.90.14
+          - remote-as 65502
+          - update-source GigabitEthernet0/0/0/0
+          - address-family ipv4 unicast
+          - network 169.254.90.12/30
+
+    - name: Configure OSPF with redistribution
+      cisco.iosxr.iosxr_config:
+        lines:
+          - router ospf 1
+          - router-id 10.30.0.1
+          - area 1
+          - interface GigabitEthernet0/0/0/1
+          - address-family ipv4 unicast
+          - redistribute bgp 65501
+          - redistribute eigrp 20
+
+    - name: Configure EIGRP (no redistribution into EIGRP)
+      cisco.iosxr.iosxr_config:
+        lines:
+          - router eigrp 20
+          - address-family ipv4 unicast
+          - autonomous-system 20
+          - network 192.168.20.0/24
+
+    - name: Save configuration
+      cisco.iosxr.iosxr_config:
+        save_when: always
