@@ -1,0 +1,11 @@
+- name: Verify OSPF neighbors
+  ios_command:
+    commands:
+      - show ip ospf neighbor
+
+
+#or run these commands to verify on the router
+show ip interface brief
+show ip route
+show ip ospf neighbor
+show running-config

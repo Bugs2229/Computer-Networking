@@ -1,0 +1,46 @@
+---
+- name: Deploy basic ASR 1002-X routing config
+  hosts: asr
+  gather_facts: no
+
+  tasks:
+
+    - name: Set hostname and basic system settings
+      ios_config:
+        lines:
+          - hostname {{ hostname }}
+          - no ip domain-lookup
+
+    - name: Configure LAN interface (RJ-45)
+      ios_config:
+        parents: "interface {{ lan_interface }}"
+        lines:
+          - description LAN - Internal Network
+          - ip address {{ lan_ip }} {{ lan_mask }}
+          - no shutdown
+
+    - name: Configure OSPF internal interface (RJ-45)
+      ios_config:
+        parents: "interface {{ ospf_interface }}"
+        lines:
+          - description Internal Router Link (OSPF)
+          - ip address {{ ospf_ip }} {{ ospf_mask }}
+          - ip ospf {{ ospf_process }} area {{ ospf_area }}
+          - no shutdown
+
+    - name: Configure OSPF process
+      ios_config:
+        parents: "router ospf {{ ospf_process }}"
+        lines:
+          - router-id {{ ospf_router_id }}
+          - passive-interface default
+          - no passive-interface {{ ospf_interface }}
+
+    - name: Configure default route (WAN)
+      ios_config:
+        lines:
+          - ip route 0.0.0.0 0.0.0.0 {{ default_gateway }}
+
+    - name: Save running configuration
+      ios_config:
+        save_when: modified

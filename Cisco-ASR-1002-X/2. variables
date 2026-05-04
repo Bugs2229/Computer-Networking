@@ -1,0 +1,15 @@
+hostname: ASR1002X
+
+lan_interface: GigabitEthernet0/0/0
+lan_ip: 192.168.1.1
+lan_mask: 255.255.255.0
+
+ospf_interface: GigabitEthernet0/0/1
+ospf_ip: 10.0.0.1
+ospf_mask: 255.255.255.252
+
+ospf_process: 10
+ospf_router_id: 1.1.1.1
+ospf_area: 0
+
+default_gateway: 203.0.113.1
